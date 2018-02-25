@@ -14,16 +14,63 @@ version=$1
 oo_path=$2
 
 logfile=/tmp/updateVersion_$(date +%Y-%m-%d).log
-configfile=${PWD}/updateVersion.config
+configfile=$(dirname "$0")/updateVersion.config
 
 exec > >(tee -ia ${logfile}) 2>&1
 echo "***************************************************"
 echo "STARTED UPDATING VERSIONS $(date)"
 echo "***************************************************"
+
+# validate params
+if [[ -z ${version} && -z ${oo_path} ]]
+then
+    echo "Missing both version and OO path. Exiting..."
+    echo "***************************************************"
+    echo "FINISHED UPDATING VERSIONS $(date)"
+    echo "***************************************************"
+    exit
+fi
+if [[ -z ${version} ]]
+then
+    echo "Missing version. Exiting..."
+    echo "***************************************************"
+    echo "FINISHED UPDATING VERSIONS $(date)"
+    echo "***************************************************"
+    exit
+else
+    if [[ ${version} =~ [^[:digit:].] ]]
+    then
+        echo "Invalid version format. It should be in the form x or x.x or x.x.x, where x is either a digit or a number. Exiting..."
+        echo "***************************************************"
+        echo "FINISHED UPDATING VERSIONS $(date)"
+        echo "***************************************************"
+        exit
+    fi
+fi
+
+# validate paths
 if [[ -z ${oo_path} ]]
 then
     echo "Missing OO path, assuming current working directory. I will look here for files to modify..."
     oo_path=.
+fi
+if [[ ! -d "${oo_path}/main" ]]
+then
+    echo "${oo_path} does not contain a main subfolder. Exiting..."
+    echo "***************************************************"
+    echo "FINISHED UPDATING VERSIONS $(date)"
+    echo "***************************************************"
+    exit
+fi
+
+# validate config file
+if [[ ! -r ${configfile} ]]
+then
+    echo "${configfile} either does not exist or is not readable. Exiting..."
+    echo "***************************************************"
+    echo "FINISHED UPDATING VERSIONS $(date)"
+    echo "***************************************************"
+    exit
 fi
 
 files=()
